@@ -118,6 +118,7 @@ yarn-error.log*
 # React build
 frontend/build/
 frontend/dist/
+package-lock.json
 
 # Logs
 *.log
@@ -168,7 +169,7 @@ temp_uploads/
 data/raw/
 data/processed/
 *.csv
-*.json
+# *.json
 *.parquet
 
 # Backup files
