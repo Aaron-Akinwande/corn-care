@@ -1,6 +1,17 @@
-"use client"
+"use client";
 import React, { useState, useRef, ChangeEvent } from 'react';
-import { Upload, Leaf, Microscope, AlertCircle, CheckCircle, Download, Camera, Zap, Shield, Activity } from 'lucide-react';
+import {
+  Upload,
+  Leaf,
+  Microscope,
+  AlertCircle,
+  CheckCircle,
+  Download,
+  Camera,
+  Zap,
+  Shield,
+  Activity,
+} from 'lucide-react';
 
 // Type definitions
 interface Nanoparticle {
@@ -33,10 +44,8 @@ const MaizeDiseaseDetector: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // API configuration
-  const API_BASE_URL: string = 'http://localhost:5000'; // Change this to your backend URL
+  const API_BASE_URL = 'http://127.0.0.1:5000';
 
-  // Function to call the backend API for disease prediction
   const predictDisease = async (imageFile: File): Promise<PredictionResult> => {
     const formData = new FormData();
     formData.append('image', imageFile);
@@ -52,113 +61,11 @@ const MaizeDiseaseDetector: React.FC = () => {
         throw new Error(errorData.error || 'Prediction failed');
       }
 
-      const result: PredictionResult = await response.json();
-      return result;
+      return await response.json();
     } catch (error) {
-      // Fallback to mock data if API is not available
-      console.warn('API unavailable, using mock data:', (error as Error).message);
-      return mockPrediction(imageFile);
+      console.error('Prediction error:', error);
+      throw error;
     }
-  };
-
-  // Mock prediction function (fallback when API is unavailable)
-  const mockPrediction = async (imageFile: File): Promise<PredictionResult> => {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Mock responses for different diseases
-    const mockResults: PredictionResult[] = [
-      {
-        disease: "Northern Corn Leaf Blight",
-        confidence: 0.92,
-        severity: "High",
-        description: "A fungal disease caused by Exserohilum turcicum that creates elongated, grayish-green to tan lesions on corn leaves. It can significantly reduce yield if left untreated, especially in humid conditions.",
-        nanoparticles: [
-          {
-            name: "Copper Nanoparticles",
-            type: "Metal-based",
-            concentration: "50-100 ppm",
-            effectiveness: "95%",
-            application: "Foliar spray every 7-10 days during disease development"
-          },
-          {
-            name: "Silver Nanoparticles",
-            type: "Metal-based",
-            concentration: "25-50 ppm",
-            effectiveness: "88%",
-            application: "Root zone application twice weekly for systemic effect"
-          },
-          {
-            name: "Chitosan-Silver Hybrid NPs",
-            type: "Bio-metallic",
-            concentration: "75-125 ppm",
-            effectiveness: "92%",
-            application: "Targeted spray on infected areas with 5-day intervals"
-          }
-        ]
-      },
-      {
-        disease: "Common Rust",
-        confidence: 0.87,
-        severity: "Medium",
-        description: "A fungal disease caused by Puccinia sorghi, characterized by small, reddish-brown pustules on both leaf surfaces. Most common in moderate temperature (60-77°F) and high humidity conditions.",
-        nanoparticles: [
-          {
-            name: "Silica Nanoparticles",
-            type: "Oxide-based",
-            concentration: "200-300 ppm",
-            effectiveness: "82%",
-            application: "Preventive foliar spray bi-weekly during rust season"
-          },
-          {
-            name: "Zinc Oxide Nanoparticles",
-            type: "Oxide-based",
-            concentration: "75-150 ppm",
-            effectiveness: "78%",
-            application: "Soil amendment and foliar spray combination"
-          }
-        ]
-      },
-      {
-        disease: "Gray Leaf Spot",
-        confidence: 0.89,
-        severity: "Medium",
-        description: "A fungal disease caused by Cercospora zeae-maydis that creates rectangular lesions with parallel sides on corn leaves. It thrives in warm, humid conditions and can cause significant yield loss.",
-        nanoparticles: [
-          {
-            name: "Titanium Dioxide Nanoparticles",
-            type: "Oxide-based",
-            concentration: "100-200 ppm",
-            effectiveness: "85%",
-            application: "UV-activated foliar treatment during sunny periods"
-          },
-          {
-            name: "Copper-Silver Hybrid NPs",
-            type: "Bimetallic",
-            concentration: "40-80 ppm",
-            effectiveness: "92%",
-            application: "Targeted spray on affected areas every 5-7 days"
-          }
-        ]
-      },
-      {
-        disease: "Healthy",
-        confidence: 0.95,
-        severity: "None",
-        description: "The leaf appears healthy with no visible signs of disease. Continue regular monitoring and preventive care to maintain plant health.",
-        nanoparticles: [
-          {
-            name: "Silica Nanoparticles",
-            type: "Oxide-based",
-            concentration: "100-150 ppm",
-            effectiveness: "N/A (Preventive)",
-            application: "Preventive foliar spray monthly to boost plant immunity"
-          }
-        ]
-      }
-    ];
-    
-    return mockResults[Math.floor(Math.random() * mockResults.length)];
   };
 
   const handleImageUpload = (event: ChangeEvent<HTMLInputElement>): void => {
@@ -167,8 +74,7 @@ const MaizeDiseaseDetector: React.FC = () => {
       setSelectedImage(file);
       setError(null);
       setResults(null);
-      
-      // Create preview
+
       const reader = new FileReader();
       reader.onload = (e: ProgressEvent<FileReader>) => {
         if (e.target?.result) {
@@ -184,17 +90,19 @@ const MaizeDiseaseDetector: React.FC = () => {
       setError("Please upload an image first");
       return;
     }
+     if (results) {
+    // Skip re-analysis if result already exists
+    return;
+  }
 
     setIsAnalyzing(true);
     setError(null);
 
     try {
-      // Call the backend API for disease prediction
       const result = await predictDisease(selectedImage);
       setResults(result);
     } catch (err) {
       setError("Analysis failed. Please try again.");
-      console.error('Prediction error:', err);
     } finally {
       setIsAnalyzing(false);
     }
@@ -216,13 +124,11 @@ const MaizeDiseaseDetector: React.FC = () => {
   };
 
   const exportToPDF = (): void => {
-    // In a real app, you would generate a proper PDF
     alert("PDF export functionality would be implemented here using libraries like jsPDF or react-pdf");
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-emerald-50">
-      {/* Header */}
       <header className="bg-white shadow-lg border-b-4 border-green-500">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
@@ -251,10 +157,8 @@ const MaizeDiseaseDetector: React.FC = () => {
               <Camera className="h-6 w-6 mr-2 text-green-600" />
               Upload Maize Leaf Image
             </h2>
-            
             <div className="space-y-6">
-              {/* Upload Area */}
-              <div 
+              <div
                 className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-green-500 transition-colors cursor-pointer"
                 onClick={() => fileInputRef.current?.click()}
               >
@@ -265,12 +169,11 @@ const MaizeDiseaseDetector: React.FC = () => {
                   onChange={handleImageUpload}
                   className="hidden"
                 />
-                
                 {imagePreview ? (
                   <div className="space-y-4">
-                    <img 
-                      src={imagePreview} 
-                      alt="Preview" 
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
                       className="max-w-full h-64 object-contain mx-auto rounded-lg shadow-md"
                     />
                     <p className="text-sm text-gray-600">Click to change image</p>
@@ -286,7 +189,6 @@ const MaizeDiseaseDetector: React.FC = () => {
                 )}
               </div>
 
-              {/* Analyze Button */}
               <button
                 onClick={handleAnalyze}
                 disabled={!selectedImage || isAnalyzing}
@@ -328,7 +230,6 @@ const MaizeDiseaseDetector: React.FC = () => {
               </div>
             ) : (
               <div className="space-y-6">
-                {/* Disease Info */}
                 <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center space-x-3">
@@ -346,7 +247,7 @@ const MaizeDiseaseDetector: React.FC = () => {
                       {results.severity}
                     </span>
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-4 mb-4">
                     <div>
                       <p className="text-sm text-gray-600">Confidence</p>
@@ -359,27 +260,33 @@ const MaizeDiseaseDetector: React.FC = () => {
                       <p className="text-lg font-semibold text-gray-900">{results.severity}</p>
                     </div>
                   </div>
-                  
+
                   <p className="text-gray-700 leading-relaxed">{results.description}</p>
                 </div>
 
-                {/* Nano Treatment Recommendations */}
                 <div>
                   <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
                     <Shield className="h-5 w-5 mr-2 text-purple-600" />
                     Recommended Nanoparticle Treatments
                   </h4>
-                  
+
                   <div className="space-y-4">
-                    {results.nanoparticles.map((nano: Nanoparticle, index: number) => (
-                      <div key={index} className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4 border border-purple-200">
+                    {results.nanoparticles.length === 0 && (
+  <p className="text-gray-500 italic">No nanoparticle treatments available.</p>
+)}
+
+                    {results.nanoparticles.map((nano, index) => (
+                      <div
+                        key={index}
+                        className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4 border border-purple-200"
+                      >
                         <div className="flex items-start justify-between mb-2">
                           <h5 className="font-semibold text-gray-900">{nano.name}</h5>
                           <span className="text-sm text-purple-600 bg-purple-100 px-2 py-1 rounded">
                             {nano.type}
                           </span>
                         </div>
-                        
+
                         <div className="grid grid-cols-2 gap-4 text-sm">
                           <div>
                             <p className="text-gray-600">Concentration</p>
@@ -390,7 +297,7 @@ const MaizeDiseaseDetector: React.FC = () => {
                             <p className="font-medium text-green-600">{nano.effectiveness}</p>
                           </div>
                         </div>
-                        
+
                         <div className="mt-2">
                           <p className="text-gray-600 text-sm">Application Method</p>
                           <p className="font-medium">{nano.application}</p>
@@ -400,7 +307,6 @@ const MaizeDiseaseDetector: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Export Button */}
                 <button
                   onClick={exportToPDF}
                   className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 px-6 rounded-xl font-semibold hover:from-purple-700 hover:to-pink-700 transition-all duration-200 flex items-center justify-center space-x-2"
@@ -422,7 +328,9 @@ const MaizeDiseaseDetector: React.FC = () => {
               </div>
               <h3 className="text-lg font-bold text-gray-900">AI-Powered Detection</h3>
             </div>
-            <p className="text-gray-600">Advanced machine learning algorithms analyze leaf patterns to identify diseases with high accuracy.</p>
+            <p className="text-gray-600">
+              Advanced machine learning algorithms analyze leaf patterns to identify diseases with high accuracy.
+            </p>
           </div>
 
           <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
@@ -432,7 +340,9 @@ const MaizeDiseaseDetector: React.FC = () => {
               </div>
               <h3 className="text-lg font-bold text-gray-900">Nano Technology</h3>
             </div>
-            <p className="text-gray-600">Cutting-edge nanoparticle treatments provide targeted, effective disease management solutions.</p>
+            <p className="text-gray-600">
+              Cutting-edge nanoparticle treatments provide targeted, effective disease management solutions.
+            </p>
           </div>
 
           <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
@@ -442,7 +352,9 @@ const MaizeDiseaseDetector: React.FC = () => {
               </div>
               <h3 className="text-lg font-bold text-gray-900">Precision Agriculture</h3>
             </div>
-            <p className="text-gray-600">Personalized treatment recommendations based on disease type, severity, and environmental conditions.</p>
+            <p className="text-gray-600">
+              Personalized treatment recommendations based on disease type, severity, and environmental conditions.
+            </p>
           </div>
         </div>
       </div>

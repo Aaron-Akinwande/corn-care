@@ -6,7 +6,7 @@ env.bak/
 venv.bak/
 .venv/
 .env/
-
+.data
 # Python
 __pycache__/
 *.py[cod]
